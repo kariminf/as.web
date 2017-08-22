@@ -1,0 +1,123 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>AllSummarizer- Class diagram</title>
+    <style></style>
+    <script src="js/lodash.min.js"></script>
+    <script src="js/dagre.min.js"></script>
+    <script src="js/nomnoml.js"></script>
+  </head>
+  <body>
+    <script id="noml" type="text/plain">
+
+    [<package>preprocess|
+      [<abstract>PreProcessor
+        |- lang: String;
+	       - data: Data
+        | + setData(Data data);
+          + addText(String text);
+          + clearText();
+          + <abstract> preProcess()
+      ]
+
+      [PreProcessor] <:- [StaticPreProcessor|-location: String|]
+      [PreProcessor] <:- [DynamicPreProcessor]
+    ]
+
+    [<package>process|
+      [<abstract>ScoreHandler
+        |
+        | + <abstract> setData(Data data);
+          + <abstract> Double scoreUnit(int unitID) throws UnitNotIncluded
+        |
+        [<static>UnitNotIncluded] --:> [Exception]
+      ]
+
+      [Scorer
+        | - data: Data
+        | + Scorer create(ScoreHandler scoreHandler)
+      ]
+
+      [Scorer] -> [ScoreHandler]
+
+      [<package>tcc|
+
+        [BayesScoreHandler
+          | data: Data;
+            clustered: Bool
+          |
+        ]
+
+        [<abstract>Clusterer
+          | # data: Data
+          |
+        ]
+
+        [<abstract>ScoreHandler] <:- [BayesScoreHandler]
+
+        [Clusterer] <:- [NaiveClusterer|- threshold: Double|]
+        [Clusterer] <- [BayesScoreHandler]
+
+        [<abstract>Feature ||]
+
+        [BayesScoreHandler] o- [Feature]
+
+        [Feature] <:-- [TFU]
+        [Feature] <:-- [TFB]
+        [Feature] <:-- [RLeng]
+        [Feature] <:-- [PLeng]
+        [Feature] <:-- [Pos]
+
+      ]
+
+    ]
+
+
+    [AllSummarizer ||]
+
+    [process] <- [AllSummarizer]
+    [preprocess] <- [AllSummarizer]
+    [AllSummarizer] -> [postprocess]
+
+
+    [<package>postprocess|
+      [<abstract>PostProcessor
+        |
+        | <abstract> + postProcess()
+      ]
+
+      [<package>extraction|
+
+        [<abstract>Extractor
+          | # order: List Int
+          | <abstract> + reOrder();
+            <abstract> + List<Integer> getOrder()
+        ]
+
+        [<abstract>ScoreHandler] <- [Extractor]
+
+        [<abstract>PostProcessor] <:- [Extractor]
+
+        [Extractor] <:-- [SimpleReOrderer]
+        [Extractor] <:-- [ThresholdReOrderer]
+        [Extractor] <:-- [GraphReOrderer]
+        [Extractor] <:-- [SimNeighborsReOrderer]
+        [Extractor] <:-- [DiffNeighborsReOrderer]
+        [Extractor] <:-- [Neighbors2ReOrderer]
+
+      ]
+
+
+    ]
+
+    </script>
+    <canvas id="target-canvas"></canvas>
+    <div> Diagram generated using nomnoml</div>
+    <script>
+    var canvas = document.getElementById('target-canvas');
+    var source = document.getElementById('noml').innerHTML;
+    nomnoml.draw(canvas, source);
+    </script>
+
+  </body>
+</html>
